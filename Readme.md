@@ -11,9 +11,9 @@ This extension uses the documentation from [http://php.net](http://php.net).
 ##Languages
 + English
 + German
++ Spanish
++ French
 
-## Soon
-I will add a French and Spanish php documentation.
 
 ### License
 Creative Commons v3.0

@@ -39,9 +39,8 @@ define(function(require, exports, module) {
         if (func_name) {
             // Initialize the Ajax request
             var xhr = new XMLHttpRequest();
-            // I will add French and Spanish
             // if the language isn't available => use English
-            if (language != "en" && language != "de") {
+            if (language != "en" && language != "de" && language != "es" && language != "fr") {
              language = "en";   
             }
             // open json file (synchronous) 
@@ -49,7 +48,6 @@ define(function(require, exports, module) {
             
             // Send the request 
             xhr.send(null);
-            
             
             if(xhr.status === 0){
                 // function information is available
