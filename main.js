@@ -55,20 +55,23 @@ define(function(require, exports, module) {
                 // function information is available
                 var tags = JSON.parse(xhr.responseText);
                 tags = eval('tags.'+func_name);
-                if (tags.s != "" || tags.p) {
-                    var summary = tags.s;
-                    // check if function has parameters
-                    if (tags.p) { 
-                        var parameters = tags.p;
-                    } else {
-                        var parameters = eval("[{}]");   
+                // if the function exists
+                if (tags) {
+                    if (tags.s != "" || tags.p) {
+                        var summary = tags.s;
+                        // check if function has parameters
+                        if (tags.p) { 
+                            var parameters = tags.p;
+                        } else {
+                            var parameters = eval("[{}]");   
+                        }
+
+                        var result = new $.Deferred();
+                        var inlineWidget = new InlineDocsViewer(func_name,{SUMMARY:summary, URL:func_name, VALUES:parameters});
+                        inlineWidget.load(hostEditor);
+                        result.resolve(inlineWidget);
+                        return result.promise();
                     }
-                
-                    var result = new $.Deferred();
-                    var inlineWidget = new InlineDocsViewer(func_name,{SUMMARY:summary, URL:func_name, VALUES:parameters});
-                    inlineWidget.load(hostEditor);
-                    result.resolve(inlineWidget);
-                    return result.promise();
                 }
             }
         } 
