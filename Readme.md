@@ -8,6 +8,12 @@ You can use the Navigation menu or ```Ctrl+K```, while your cursor is on a php f
 
 This extension uses the documentation from [http://php.net](http://php.net).
 
+## User defined function documentation
+Use JavaDoc to document your own functions and get inline documentations as well.
+
+![Example](image/user_func.png?raw=true)
+
+
 ##Languages
 + English
 + German
