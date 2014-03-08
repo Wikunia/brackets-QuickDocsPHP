@@ -50,7 +50,7 @@ define(function (require, exports, module) {
     
     /**
      * @param {!string} phpPropName
-     * @param {!{SUMMARY:string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} phpPropDetails
+     * @param {!{SUMMARY:string, RETURN: string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} phpPropDetails
      */
     function InlineDocsViewer(phpPropName, phpPropDetails) {
         InlineWidget.call(this);
@@ -60,12 +60,22 @@ define(function (require, exports, module) {
             return { value: valueInfo.t, description: valueInfo.d };
         });
         
+        var bottom_style = '', return_style = '';
+        if (!phpPropDetails.URL) {
+            bottom_style = 'display: none;';
+        }
+        if (!phpPropDetails.RETURN) {
+            return_style = 'display: none;';
+        }
         var templateVars = {
             propName    : phpPropName,
             summary     : phpPropDetails.SUMMARY,
+            return_val  : phpPropDetails.RETURN,
             propValues  : propValues,
             url         : phpPropDetails.URL,
-            Strings     : Strings
+            Strings     : Strings,
+            BottomStyle : bottom_style, 
+            ReturnStyle : return_style
         };
         
         var html = Mustache.render(inlineEditorTemplate, templateVars);
