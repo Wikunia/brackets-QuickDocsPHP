@@ -13,6 +13,12 @@ Use JavaDoc to document your own functions and get inline documentations as well
 
 ![Example](image/user_func.png?raw=true)
 
+##The documentation includs
++ description
++ syntax
++ paramters
+ + title
+ + description
 
 ##Languages
 + English

@@ -66,22 +66,22 @@ define(function(require, exports, module) {
                 
                 // if the function exists
                 if (tags) {
-                    if (tags.s != "" || tags.p) {
-                        var summary = tags.s;
-                        // check if function has parameters
-                        if (tags.p) { 
-                            var parameters = tags.p;
-                        } else {
-                            var parameters = eval("[{}]");   
-                        }
-                        tags.r = tags.r ? '<b>Return</b><br>' + tags.r : ''; // empty string if tags.r isn't defined
-
-                        var result = new $.Deferred();
-                        var inlineWidget = new InlineDocsViewer(func_name,{SUMMARY:summary, RETURN: tags.r, URL:url, VALUES:parameters});
-                        inlineWidget.load(hostEditor);
-                        result.resolve(inlineWidget);
-                        return result.promise();
+                if (tags.s != "" || tags.p) {
+                    var summary = tags.s;
+                    // check if function has parameters
+                    if (tags.p) { 
+                        var parameters = tags.p;
+                    } else {
+                        var parameters = eval("[{}]");   
                     }
+                    tags.r = tags.r ? '<b>Return</b><br>' + tags.r : ''; // empty string if tags.r isn't defined
+
+                    var result = new $.Deferred();
+                    var inlineWidget = new InlineDocsViewer(func_name,{SUMMARY:summary, SYNTAX: tags.y, RETURN: tags.r, URL:url, VALUES:parameters});
+                    inlineWidget.load(hostEditor);
+                    result.resolve(inlineWidget);
+                    return result.promise();
+                }
                 }
             }
         } 
