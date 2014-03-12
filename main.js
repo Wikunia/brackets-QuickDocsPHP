@@ -125,27 +125,23 @@ define(function(require, exports, module) {
     }
     
     
-    /**
+     /**
     * user defined functions can documentated with JavaDoc
-    * @param content    content of document
-    * @param func       function (includs func.name)
+    * @param content    {string}    content of document
+    * @param func       {object}       function (includs func.name)
     * @return tags object
     */
     function get_userdefined_tags(content,func) {
         var tags = new Object();
-        var regex = /\/\*\*( *?)\n([\s\S]*?)\*\/( *?)\n( *?)function(.*?)\{/gmi; // global,multiline,insensitive
+        var regex = /\/\*\*(?: *?)\n(?:[\s\S]*?)\*\/(?: *?)\n(?: *?)function(.*?)\{/gmi; // global,multiline,insensitive
 
         var matches = null;
         while (matches = regex.exec(content)) {
             // matches[0] = all
-            // matches[1] = whitespace
-            // matches[2] = inside /** */ 
-            // matches[3] = whitespace before \n
-            // matches[4] = whitespace before function
-            // macthes[5] = function name
+            // macthes[1] = function name
             // get the function name
-            var match_func = matches[5].substr(0,matches[5].indexOf('(')).trim();
-
+            var match_func = matches[1].substr(0,matches[1].indexOf('(')).trim();
+        
             if (match_func === func.name) {
                 var lines = matches[0].split('\n');
         
@@ -166,17 +162,29 @@ define(function(require, exports, module) {
                             tags.s = lines[i];
                         }
                     }
+                    tags.y = ''; // syntax is empty for this
                     
                     // get params
                     if (lines[i].substr(0,6) === '@param') {
                         canbe_des = false; // description tag closed
-                        var param_parts = lines[i].split(/(\s+)/);
-                        // 0 = @param, 1 = ' ', 2 = title, 3 = ' ', 4-... = description
-                        var description = param_parts[4];
-                        for (var j = 5; j < param_parts.length; j++) {
-                            description += param_parts[j];
+                        var param_parts = lines[i].split(/(?:\s+)/);
+                       
+                        // 0 = @param, 1 = title, 2-... = description
+                        // 2 can be the type (inside {})
+                        if (param_parts[2].substr(0,1) == '{' && param_parts[2].substr(-1) == '}') {
+                            // type is part of the title
+                            var param_title = param_parts[1] + ' ' + param_parts[2]; 
+                            var description = param_parts[3];
+                            var j_start = 4;
+                        } else {
+                            var param_title = param_parts[1]; 
+                            var description = param_parts[2];
+                            var j_start = 3;
                         }
-                        params.push({'t':param_parts[2],'d':description});
+                        for (var j = j_start; j < param_parts.length; j++) {
+                            description += ' ' + param_parts[j];
+                        }
+                        params.push({'t':param_title,'d':description});
                     }
                     if (lines[i].substr(0,7) === '@return') {
                         tags.r = lines[i].substr(7).trim(); // delete @return and trim
