@@ -133,7 +133,7 @@ define(function(require, exports, module) {
     */
     function get_userdefined_tags(content,func) {
         var tags = new Object();
-        var regex = /\/\*\*(?: *?)\n(?:[\s\S]*?)\*\/(?: *?)\n(?: *?)function(.*?)\{/gmi; // global,multiline,insensitive
+        var regex = /\/\*\*(?:[ \t]*?)\n(?:[\s\S]*?)\*\/(?:[ \t]*?)\n(?:[ \t]*?)function(.*?)\{/gmi; // global,multiline,insensitive
 
         var matches = null;
         while (matches = regex.exec(content)) {
