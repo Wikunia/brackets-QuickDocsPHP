@@ -118,7 +118,13 @@ define(function(require, exports, module) {
         var no_function_chars = '0123456789$';
         if (no_function_chars.indexOf(line_begin_rev.substr(b,1)) === -1 || b == line_begin_rev.length) {
             var func_name = line.substr(pos.ch-b,b+e);
-            return func_name;
+			
+			// if func name starts with a letter
+			if (func_name.charAt(0).match(/[a-zA-Z]/)) {
+            	return func_name;
+			} else {
+				return null;
+			}
         }
  
         return null;
