@@ -2,7 +2,7 @@
 This extension provides a quick documentation to each php function.
 
 ## How to use
-You can use the Navigation menu or ```Ctrl+K```, while your cursor is on a php function, to open the inline documentation.
+You can use the Navigation menu or ```Ctrl+K``` (Windows) or ```CMD+K``` (Mac), while your cursor is on a php function, to open the inline documentation.
 
 ![Example](image/example.png?raw=true)
 
