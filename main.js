@@ -139,14 +139,14 @@ define(function(require, exports, module) {
     */
     function get_userdefined_tags(content,func) {
         var tags = new Object();
-        var regex = /\/\*\*(?:[ \t]*?)\n(?:[\s\S]*?)\*\/(?:[ \t]*?)\n(?:[ \t]*?)function(.*?)\{/gmi; // global,multiline,insensitive
+        var regex = /\/\*\*(?:[ \t]*?)\n(?:[\s\S]*?)\*\/(?:[ \t]*?)\n(?:[ \t]*?)function (.*?)\n?\(/gmi; // global,multiline,insensitive
 
         var matches = null;
         while (matches = regex.exec(content)) {
             // matches[0] = all
             // macthes[1] = function name
             // get the function name
-            var match_func = matches[1].substr(0,matches[1].indexOf('(')).trim();
+            var match_func = matches[1].trim();
         
             if (match_func === func.name) {
                 var lines = matches[0].split('\n');
@@ -176,17 +176,25 @@ define(function(require, exports, module) {
                         var param_parts = lines[i].split(/(?:\s+)/);
                        
                         // 0 = @param, 1 = title, 2-... = description
-                        // 2 can be the type (inside {})
-                        if (param_parts[2].substr(0,1) == '{' && param_parts[2].substr(-1) == '}') {
-                            // type is part of the title
-                            var param_title = param_parts[1] + ' ' + param_parts[2]; 
+						// 1 can be the type (not starting with a $) => 2 is the title (phpDoc)
+                        // 2 can be the type (inside {}) (JavaDoc)
+						if (param_parts[1].substr(0,1) !== '$') {
+							// type is part of the title
+                            var param_title = param_parts[2] + ' {' + param_parts[1] + '}'; 
                             var description = param_parts[3];
-                            var j_start = 4;
-                        } else {
-                            var param_title = param_parts[1]; 
-                            var description = param_parts[2];
-                            var j_start = 3;
-                        }
+                            var j_start = 4;	
+						} else { // maybe JavaDoc
+							if (param_parts[2].substr(0,1) == '{' && param_parts[2].substr(-1) == '}') {
+								// type is part of the title
+								var param_title = param_parts[1] + ' ' + param_parts[2]; 
+								var description = param_parts[3];
+								var j_start = 4;
+							} else {
+								var param_title = param_parts[1]; 
+								var description = param_parts[2];
+								var j_start = 3;
+							}
+						}
                         for (var j = j_start; j < param_parts.length; j++) {
                             description += ' ' + param_parts[j];
                         }
@@ -208,7 +216,8 @@ define(function(require, exports, module) {
         return s.split("").reverse().join("");
     }
     
-    
+
+
     
     EditorManager.registerInlineDocsProvider(inlineProvider); 
 });
