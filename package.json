@@ -3,7 +3,7 @@
     "title": "QuickDocsPHP",
     "author": "Ole Kröger",
     "homepage": "https://github.com/Wikunia/brackets-QuickDocsPHP",
-    "version": "1.1.6",
+    "version": "1.2.0",
     "engines": { "brackets": ">=0.23" },
     "description": "Inline short documentation for PHP functions, including a summary, syntax and parameters."
 }

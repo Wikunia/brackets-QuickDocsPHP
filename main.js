@@ -33,8 +33,10 @@ define(function(require, exports, module) {
         }
         
         // get function name
-        var func_name = get_func_name(currentDoc,sel.start);
-        
+        var func = get_func_name(currentDoc,sel.start);
+		var func_name = func[0];
+		var func_class = func[1];
+     
         // if a function was selected
         if (func_name) {
             // Initialize the Ajax request
@@ -44,16 +46,23 @@ define(function(require, exports, module) {
              language = "en";   
             }
             // open json file (synchronous) 
-            xhr.open('get', ExtPath+'docs/'+language+'/php.json', false);
-            
+			if (!func_class) {
+				xhr.open('get', ExtPath+'docs/'+language+'/php.json', false);
+			} else {
+				xhr.open('get', ExtPath+'docs/'+language+'/classes.json', false);
+			}
             // Send the request 
             xhr.send(null);
             
             if(xhr.status === 0){
                 // function information is available
                 var tags = JSON.parse(xhr.responseText);
-                tags = eval('tags.'+func_name);
                 
+				if (!func_class) {
+					tags = eval('tags.'+func_name);
+				} else {
+					tags = eval('tags.'+func_class+'.'+func_name);
+				}
                 // try userdefined tags
                 if (!tags) {
                   var func = new Object();
@@ -118,10 +127,19 @@ define(function(require, exports, module) {
         var no_function_chars = '0123456789$';
         if (no_function_chars.indexOf(line_begin_rev.substr(b,1)) === -1 || b == line_begin_rev.length) {
             var func_name = line.substr(pos.ch-b,b+e);
-			
+		
 			// if func name starts with a letter
 			if (func_name.charAt(0).match(/[a-zA-Z]/)) {
-            	return func_name;
+				var func_class = null;
+				if (line_begin_rev.substr(b,2) == '>-') {
+					var class_pos = line_begin_rev.indexOf('$',b);
+					// func_class (without $)
+					if (class_pos != -1) {
+						var varClass = line.substr(pos.ch-class_pos,class_pos-b-2);
+						func_class = getClass(content,varClass);
+					}
+				}
+            	return [func_name,func_class];
 			} else {
 				return null;
 			}
@@ -130,6 +148,34 @@ define(function(require, exports, module) {
         return null;
     }
     
+	
+	 
+    /**
+        get the type of class 
+        @param content  {string} content of document
+        @param variable {string} name of the variable
+        @return type of the variable: Classname
+    */
+    function getClass (content, variable) {
+        // get the declaration for this variable 
+        // can be a ',' between two declarations
+        var regex = new RegExp('\\$' + variable + '\\s*?=\\s*?new','');
+        var match = regex.exec(content);
+     
+        if (match) {
+            var pos = match.index;
+            // length of the match
+            var match_len = match[0].length;
+        } else {
+            // if the declaration is not available in this content
+            return 'unknown';   
+        }
+		
+		// get Class Value
+		var value = content.substr(pos+match_len,content.substr(pos+match_len).search(/[(;,]/));
+        value = value.trim();
+		return value.toLowerCase();
+	}
     
      /**
     * user defined functions can documentated with JavaDoc
