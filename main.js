@@ -36,7 +36,7 @@ define(function(require, exports, module) {
         var func = get_func_name(currentDoc,sel.start);
 		var func_name = func[0];
 		var func_class = func[1];
-     
+     	console.log(func);
         // if a function was selected
         if (func_name) {
             // Initialize the Ajax request
@@ -60,8 +60,10 @@ define(function(require, exports, module) {
                 
 				if (!func_class) {
 					tags = eval('tags.'+func_name);
-				} else {
+				} else if (func_class != "new") {
 					tags = eval('tags.'+func_class+'.'+func_name);
+				} else {
+					tags = eval('tags.'+func_name+'.__construct');
 				}
                 // try userdefined tags
                 if (!tags) {
@@ -76,7 +78,9 @@ define(function(require, exports, module) {
                 // if the function exists
                 if (tags) {
                 if (tags.s != "" || tags.p) {
-                    var summary = tags.s;
+                    if (!summary) {
+						var summary = tags.s;
+					}
                     // check if function has parameters
                     if (tags.p) { 
                         var parameters = tags.p;
@@ -136,7 +140,12 @@ define(function(require, exports, module) {
 					// func_class (without $)
 					if (class_pos != -1) {
 						var varClass = line.substr(pos.ch-class_pos,class_pos-b-2);
+						console.log('varClass: ' + varClass);
 						func_class = getClass(content,varClass);
+					}
+				} else {
+					if (line_begin_rev.substr(b+1,3) == 'wen') {
+						func_class = "new";	
 					}
 				}
             	return [func_name,func_class];
@@ -174,7 +183,8 @@ define(function(require, exports, module) {
 		// get Class Value
 		var value = content.substr(pos+match_len,content.substr(pos+match_len).search(/[(;,]/));
         value = value.trim();
-		return value.toLowerCase();
+		console.log('ClassName: '+value);
+		return value;
 	}
     
      /**

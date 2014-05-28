@@ -1,5 +1,5 @@
 # QuickDocsPHP
-This extension provides a quick documentation to each php function.
+This extension provides a quick documentation to each php function and to some php predefined classes.
 
 ## How to use
 You can use the Navigation menu or ```Ctrl+K``` (Windows) or ```CMD+K``` (Mac), while your cursor is on a php function, to open the inline documentation.
@@ -19,6 +19,10 @@ Use JavaDoc to document your own functions and get inline documentations as well
 + parameters
  + title
  + description
+
+##PHP Classes
++ DateTime
++ ArrayObject
 
 ##Languages
 + English
