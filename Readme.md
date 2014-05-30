@@ -16,6 +16,7 @@ Use JavaDoc to document your own functions and get inline documentations as well
 ##The documentation includes
 + description
 + syntax
++ return
 + parameters
  + title
  + description
