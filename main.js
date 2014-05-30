@@ -6,6 +6,10 @@ define(function(require, exports, module) {
     var KeyBindingManager = brackets.getModule("command/KeyBindingManager"),
     EditorManager = brackets.getModule("editor/EditorManager"),
     DocumentManager = brackets.getModule("document/DocumentManager"),
+	FileSystem          = brackets.getModule("filesystem/FileSystem"),
+	FileUtils           = brackets.getModule("file/FileUtils"),
+	LanguageManager         = brackets.getModule("language/LanguageManager"),
+	ProjectManager          = brackets.getModule("project/ProjectManager"),
     ExtensionUtils = brackets.getModule("utils/ExtensionUtils");
 
     var ExtPath = ExtensionUtils.getModulePath(module);
@@ -15,6 +19,11 @@ define(function(require, exports, module) {
  
     
     function inlineProvider(hostEditor, pos) {
+		var result = new $.Deferred();
+		
+		var doc = hostEditor.document;
+		var docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
+		
         // get editor content
         var currentDoc = DocumentManager.getCurrentDocument().getText();
        
@@ -34,12 +43,10 @@ define(function(require, exports, module) {
         
         // get function name
         var func = get_func_name(currentDoc,sel.start);
-		var func_name = func[0];
-		var func_class = func[1];
-     
+     	
 		
         // if a function was selected
-        if (func_name) {
+        if (func.name) {
             // Initialize the Ajax request
             var xhr = new XMLHttpRequest();
             // if the language isn't available => use English
@@ -47,7 +54,7 @@ define(function(require, exports, module) {
              language = "en";   
             }
             // open json file (synchronous) 
-			if (!func_class) {
+			if (!func.class) {
 				xhr.open('get', ExtPath+'docs/'+language+'/php.json', false);
 			} else {
 				xhr.open('get', ExtPath+'docs/'+language+'/classes.json', false);
@@ -56,52 +63,98 @@ define(function(require, exports, module) {
             xhr.send(null);
             
             if(xhr.status === 0){
+				
                 // function information is available
                 var tags = JSON.parse(xhr.responseText);
                 
-				if (!func_class) {
-					tags = eval('tags.'+func_name);
-				} else if (func_class != "new") {
-					tags = eval('tags.'+func_class+'.'+func_name);
+				if (!func.class) {
+					tags = eval('tags.'+func.name);
+				} else if (func.class != "new") {
+					tags = eval('tags.'+func.class);
+					if (tags) {
+						tags = eval('tags.'+func.name);
+					}
 				} else {
-					tags = eval('tags.'+func_name+'.__construct');
+					tags = eval('tags.'+func.name);
+					if (tags) {
+						tags = tags.__construct;
+					}				
 				}
+				
+				
+				
                 // try userdefined tags
                 if (!tags) {
-					var func = new Object();
-					func.name = func_name;
-					tags = get_userdefined_tags(currentDoc,func);
 					var url = null;
+					if (func.class) {
+						// constructor
+						if (func.class == "new") {
+							func.class = func.name;
+							func.name = "__construct";
+						}
+						
+						var classContent = getContentClass(docDir,func.class);
+						classContent.done(function(content) {
+							var usertags = get_userdefined_tags(content,func);
+							usertags.done(function(tags) {
+								var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
+								inlineViewer.done(function(inlineWidget) {
+									result.resolve(inlineWidget);					
+								});
+							});
+						});
+					} else {
+						var usertags = get_userdefined_tags(currentDoc,func);
+						usertags.done(function(tags) {
+						var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
+						inlineViewer.done(function(inlineWidget) {
+							result.resolve(inlineWidget);					
+						});
+					});
+					}
+					
                 } else {
-                    var url = func_name;
+                    var url = func.name;
+					var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
+					inlineViewer.done(function(inlineWidget) {
+						result.resolve(inlineWidget);					
+					});
                 }
                 
-                // if the function exists
-                if (tags) {
-                if (tags.s != "" || tags.p) {
-                    if (!summary) {
-						var summary = tags.s;
-					}
-                    // check if function has parameters
-                    if (tags.p) { 
-                        var parameters = tags.p;
-                    } else {
-                        var parameters = eval("[{}]");   
-                    }
-                    tags.r = tags.r ? '<b>Return</b><br>' + tags.r : ''; // empty string if tags.r isn't defined
-
-                    var result = new $.Deferred();
-                    var inlineWidget = new InlineDocsViewer(func_name,{SUMMARY:summary, SYNTAX: tags.y, RETURN: tags.r, URL:url, VALUES:parameters});
-                    inlineWidget.load(hostEditor);
-                    result.resolve(inlineWidget);
-                    return result.promise();
-                }
-                }
+               
+				
+				return result.promise();			
+				
             }
         } 
-        return null;
+      
+		function sendToInlineViewer(hostEditor,tags,func,url) {
+			if (tags.s != "" || tags.p) {
+				// check if function has parameters
+				if (tags.p) { 
+					var parameters = tags.p;
+				} else {
+					var parameters = eval("[{}]");   
+				}
+				// empty string if tags.r isn't defined
+				tags.r = tags.r ? '<b>Return</b><br>' + tags.r : ''; 
+
+				var result = new $.Deferred();
+				var inlineWidget = new InlineDocsViewer(func.name,{SUMMARY:tags.s, SYNTAX: tags.y, RETURN: tags.r, URL:url, VALUES:parameters});
+				inlineWidget.load(hostEditor);
+				result.resolve(inlineWidget);
+				return result.promise();
+			}					
+		}
     }
     
+
+	/**
+	 * Get the name of the function at pos
+	 * @param content currentDocument
+	 * @param pos position
+	 * @return {name,class} || null
+	 */	
     function get_func_name(content,pos) {
         // get the content of each line
         var lines = content.split("\n");
@@ -148,7 +201,7 @@ define(function(require, exports, module) {
 						func_class = "new";	
 					}
 				}
-            	return [func_name,func_class];
+            	return {'name':func_name,'class':func_class};
 			} else {
 				return null;
 			}
@@ -186,32 +239,32 @@ define(function(require, exports, module) {
 		return value;
 	}
     
+
+	
      /**
     * user defined functions can documentated with JavaDoc
     * @param content    {string}    content of document
-    * @param func       {object}       function (includs func.name)
+    * @param func       {object}    function (includs func.name)
     * @return tags object
     */
     function get_userdefined_tags(content,func) {
+		var result = new $.Deferred();
+		
         var tags = new Object();
-        var regex = /\/\*\*(?:[ \t]*?)\n(?:[\s\S]*?)\*\/(?:[ \t]*?)\n(?:[ \t]*?)(.*?)(\n|$)/gmi; // global,multiline,insensitive
+        var regex = /\/\*\*(?:[ \t]*)[\n\r](?:[\s\S]*?)\*\/(?:[ \t]*)[\n\r]*?(?:[ \t]*)function (.*?)(\n|\r|$)/gmi; // global,multiline,insensitive
 
         var matches = null;
         while (matches = regex.exec(content)) {
             // matches[0] = all
-            // macthes[1] = function '''function_name'''(
+            // matches[1] = function '''function_name'''(
             // get the function name
 			// start_pos
-			var start_func_name = matches[1].trim().indexOf("function ")+9;
-			if (start_func_name > 8) { // indexOf != -1
-				var match_func = matches[1].trim().substr(start_func_name);
-				var end_func_name = match_func.search(/(\(|$)/);
-				var match_func = match_func.substring(0,end_func_name);
-			} else {
-				match_func === "";	
-			}
+			var match_func = matches[1].trim();
+			var end_func_name = match_func.search(/(\(|$)/);
+			var match_func = match_func.substring(0,end_func_name);
+			
             if (match_func === func.name) {
-                var lines = matches[0].split('\n');
+                var lines = matches[0].split(/[\n\r]/);
         
                 // until the first @ it's description 
                 // afterwards the description can't start again
@@ -220,8 +273,10 @@ define(function(require, exports, module) {
                 // first line is /**, and last two ones are */ \n function
                 for (var i = 1; i < lines.length-2; i++) {
                     lines[i] = lines[i].trim(); // trim each line
+					if (lines[i].substr(0,2) == "*/") break;
                     lines[i] = lines[i].replace(/^\*/,'').trim(); // delete * at the beginning and trim line again
                     
+					
                     // no @ => decription part 
                     if (lines[i].substr(0,1) !== '@' && canbe_des) {
                         if (tags.s && lines[i]) {
@@ -276,12 +331,84 @@ define(function(require, exports, module) {
                     }
                 }
                 tags.p = params;
-                return tags;
+                result.resolve(tags);
+				return result.promise();
             }
          }
-        return null;   
+        return result.reject();   
     }
     
+	/**
+	 * Get the content of a special class name
+	 * For that iterate through all php files 
+	 * @param docDir directory of current document
+	 * @param className name of the php class
+	 * @return content The content of the php class file
+	 */
+	function getContentClass(docDir,className) {
+	    function _nonBinaryFileFilter(file) {
+            return !LanguageManager.getLanguageForPath(docDir+'/'+file).isBinary();
+        }
+        var result = new $.Deferred();
+		
+        ProjectManager.getAllFiles(_nonBinaryFileFilter)
+            .done(function (files) {
+				var content = getContentClassIterator(files,className);
+				if (content) {
+					return result.resolve(content);
+				}
+			})
+			.fail(function () {
+				result.reject();
+			});
+		return result.promise();
+	}
+	
+	/**
+	 * Get the content of a special class name
+	 * For that iterate through all php files 
+	 * @param contents value of directory.getContents
+	 * @param className name of the php class
+	 * @return content The content of the php class file
+	 */
+	function getContentClassIterator(contents,className) {
+		var result = '';
+		if (contents) {
+			contents.some(function (entry) {
+				if (entry._isDirectory == false) {
+					var match = new RegExp('class\\s*?'+className+'\\s*?\{');
+					if (entry._name.substr(-4) == ".php") {
+						if (entry._contents) {
+							if (entry._contents.match(match)) {
+								result = entry._contents;
+								return true;
+							}
+						} else {
+							var xhr = new XMLHttpRequest();
+							// false => synchron
+							xhr.open('get',entry._path, false);
+
+							// Send the request 
+							xhr.send(null);
+
+							if(xhr.status === 0){
+								var text = xhr.responseText;
+								if (text.match(match)) {
+									result = text;
+									return true;
+								}
+							}	
+						}
+					}
+				}
+			});
+		}
+		if (result) {
+			return result;	
+		}
+		return false;
+	}
+	
     // reverse a string
     function reverse_str(s){
         return s.split("").reverse().join("");
