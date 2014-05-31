@@ -359,14 +359,27 @@ define(function(require, exports, module) {
 	 * @return content The content of the php class file
 	 */
 	function getContentClass(docDir,className) {
-	    function _nonBinaryFileFilter(file) {
-            return !LanguageManager.getLanguageForPath(docDir+'/'+file).isBinary();
+	    function getPhpFiles(file) {
+            if (file._name.substr(-4) == ".php") return true;
         }
         var result = new $.Deferred();
 		
-        ProjectManager.getAllFiles(_nonBinaryFileFilter)
+        ProjectManager.getAllFiles(getPhpFiles)
             .done(function (files) {
-				var content = getContentClassIterator(files,className);
+				// sort files to make it faster
+				// if the php file name contains the class name it's more relevant
+				var sortedFilesTop = [];
+				var sortedFilesBottom = [];
+				var sortedFiles = [];
+				files.forEach(function(file) {
+					if (file._name.toLowerCase().indexOf(className.toLowerCase()) >= 0) {
+						sortedFilesTop.push(file);	
+					} else {
+						sortedFilesBottom.push(file);	
+					}
+				});
+				sortedFiles = sortedFilesTop.concat(sortedFilesBottom);
+				var content = getContentClassIterator(sortedFiles,className);
 				if (content) {
 					return result.resolve(content);
 				}
