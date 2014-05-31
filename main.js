@@ -266,12 +266,12 @@ define(function(require, exports, module) {
         var matches = null;
         while (matches = regex.exec(content)) {
             // matches[0] = all
-            // matches[1] = function '''function_name'''(
+            // matches[1] = '''function_name'''[ ](...
             // get the function name
 			// start_pos
 			var match_func = matches[1].trim();
 			var end_func_name = match_func.search(/(\(|$)/);
-			var match_func = match_func.substring(0,end_func_name);
+			var match_func = match_func.substring(0,end_func_name).trim();
 			
             if (match_func === func.name) {
                 var lines = matches[0].split(/[\n\r]/);
