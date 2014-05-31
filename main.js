@@ -100,17 +100,27 @@ define(function(require, exports, module) {
 								var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
 								inlineViewer.done(function(inlineWidget) {
 									result.resolve(inlineWidget);					
+								}).fail(function() {
+									result.reject();
 								});
+							}).fail(function() {
+								result.reject();
 							});
+						}).fail(function() {
+							result.reject();
 						});
 					} else {
 						var usertags = get_userdefined_tags(currentDoc,func);
 						usertags.done(function(tags) {
-						var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
-						inlineViewer.done(function(inlineWidget) {
-							result.resolve(inlineWidget);					
+							var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
+							inlineViewer.done(function(inlineWidget) {
+								result.resolve(inlineWidget);					
+							}).fail(function() {
+								result.reject();
+							});
+						}).fail(function() {
+							result.reject();
 						});
-					});
 					}
 					
                 } else {
@@ -335,6 +345,9 @@ define(function(require, exports, module) {
 				return result.promise();
             }
          }
+		if (!tags) {
+			result.reject();	
+		}
         return result.reject();   
     }
     
