@@ -46,7 +46,7 @@ define(function(require, exports, module) {
      	
 		
         // if a function was selected
-        if (func.name) {
+        if (func && func.name) {
             // Initialize the Ajax request
             var xhr = new XMLHttpRequest();
             // if the language isn't available => use English
@@ -131,13 +131,12 @@ define(function(require, exports, module) {
 					});
                 }
                 
-               
-				
 				return result.promise();			
-				
-            }
-        } 
-      
+            } 
+		} else {
+			return null;
+		}
+		
 		function sendToInlineViewer(hostEditor,tags,func,url) {
 			if (tags.s != "" || tags.p) {
 				// check if function has parameters
