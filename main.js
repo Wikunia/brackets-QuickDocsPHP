@@ -377,8 +377,11 @@ define(function(require, exports, module) {
 						sortedFilesBottom.push(file);	
 					}
 				});
-				sortedFiles = sortedFilesTop.concat(sortedFilesBottom);
-				var content = getContentClassIterator(sortedFiles,className);
+				var content;
+				if (sortedFilesTop.length != 0 || sortedFilesBottom.length < 10) {
+					sortedFiles = sortedFilesTop.concat(sortedFilesBottom);
+					content = getContentClassIterator(sortedFiles,className);
+				}
 				if (content) {
 					return result.resolve(content);
 				}
