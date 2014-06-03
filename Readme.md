@@ -12,7 +12,7 @@ This extension uses the documentation from [http://php.net](http://php.net).
 ## User defined function documentation
 Use JavaDoc to document your own functions and get inline documentations as well.
 It's also working if your own function isn't part of your current document but inside a php class.
-
+If the function is inside a php class it is important, that the filename contains the classname! 
 
 ![InlineDocs](image/user_func.png?raw=true)
 
