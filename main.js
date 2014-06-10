@@ -289,7 +289,7 @@ define(function(require, exports, module) {
                     // no @ => decription part 
                     if (lines[i].substr(0,1) !== '@' && canbe_des) {
                         if (tags.s && lines[i]) {
-                            tags.s += ' ' + lines[i]; // add to summary part
+                            tags.s += '<br>' + lines[i]; // add to summary part
                         } else if (!tags.s) {
                             tags.s = lines[i];
                         }
