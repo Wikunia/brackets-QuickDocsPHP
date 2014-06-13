@@ -43,8 +43,7 @@ define(function(require, exports, module) {
         
         // get function name
         var func = get_func_name(currentDoc,sel.start);
-     	
-		
+     			
         // if a function was selected
         if (func && func.name) {
             // Initialize the Ajax request
@@ -54,7 +53,7 @@ define(function(require, exports, module) {
              language = "en";   
             }
             // open json file (synchronous) 
-			if (!func.class) {
+			if (!func.class.name) {
 				xhr.open('get', ExtPath+'docs/'+language+'/php.json', false);
 			} else {
 				xhr.open('get', ExtPath+'docs/'+language+'/classes.json', false);
@@ -67,10 +66,10 @@ define(function(require, exports, module) {
                 // function information is available
                 var tags = JSON.parse(xhr.responseText);
                 
-				if (!func.class) {
+				if (!func.class.name) {
 					tags = eval('tags.'+func.name);
-				} else if (func.class != "new") {
-					tags = eval('tags.'+func.class);
+				} else if (func.class.name != "new") {
+					tags = eval('tags.'+func.class.name);
 					if (tags) {
 						tags = eval('tags.'+func.name);
 					}
@@ -86,29 +85,55 @@ define(function(require, exports, module) {
                 // try userdefined tags
                 if (!tags) {
 					var url = null;
-					if (func.class) {
+					if (func.class.name) {
 						// constructor
-						if (func.class == "new") {
-							func.class = func.name;
+						if (func.class.name == "new") {
+							func.class.name = func.name;
 							func.name = "__construct";
 						}
-						
-						var classContent = getContentClass(docDir,func.class);
-						classContent.done(function(content) {
-							var usertags = get_userdefined_tags(content,func);
+						if (func.class.type == "parent") {
+							var usertags = get_userdefined_tags(currentDoc,func);
 							usertags.done(function(tags) {
-								var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
-								inlineViewer.done(function(inlineWidget) {
-									result.resolve(inlineWidget);					
+									var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
+									inlineViewer.done(function(inlineWidget) {
+										result.resolve(inlineWidget);					
+									})
+							}).fail(function() {
+									var classContent = getContentClass(docDir,func.class.name);
+									classContent.done(function(content) {
+										var usertags = get_userdefined_tags(content,func);
+										usertags.done(function(tags) {
+											var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
+											inlineViewer.done(function(inlineWidget) {
+												result.resolve(inlineWidget);					
+											}).fail(function() {
+												result.reject();
+											});
+										}).fail(function() {
+											result.reject();
+										});
+									}).fail(function() {
+										result.reject();
+									});	
+						    })
+						} else {						
+							var classContent = getContentClass(docDir,func.class.name);
+							classContent.done(function(content) {
+								var usertags = get_userdefined_tags(content,func);
+								usertags.done(function(tags) {
+									var inlineViewer = sendToInlineViewer(hostEditor,tags,func,url);
+									inlineViewer.done(function(inlineWidget) {
+										result.resolve(inlineWidget);					
+									}).fail(function() {
+										result.reject();
+									});
 								}).fail(function() {
 									result.reject();
 								});
 							}).fail(function() {
 								result.reject();
 							});
-						}).fail(function() {
-							result.reject();
-						});
+						}
 					} else {
 						var usertags = get_userdefined_tags(currentDoc,func);
 						usertags.done(function(tags) {
@@ -197,17 +222,23 @@ define(function(require, exports, module) {
 		
 			// if func name starts with a letter
 			if (func_name.charAt(0).match(/[a-zA-Z]/)) {
-				var func_class = null;
+				var func_class = {};
 				if (line_begin_rev.substr(b,2) == '>-') {
 					var class_pos = line_begin_rev.indexOf('$',b);
 					// func_class (without $)
 					if (class_pos != -1) {
 						var varClass = line.substr(pos.ch-class_pos,class_pos-b-2);
-						func_class = getClass(content,varClass);
+						if (varClass == "this") {
+							// could extend a parent class
+							func_class.name = getParentClass(content);
+							func_class.type = "parent";
+						} else {
+							func_class.name = getClass(content,varClass);
+						}
 					}
 				} else {
 					if (line_begin_rev.substr(b+1,3) == 'wen') {
-						func_class = "new";	
+						func_class.name = "new";	
 					}
 				}
             	return {'name':func_name,'class':func_class};
@@ -222,7 +253,7 @@ define(function(require, exports, module) {
 	
 	 
     /**
-        get the type of class 
+        get the className of class variable 
         @param content  {string} content of document
         @param variable {string} name of the variable
         @return type of the variable: Classname
@@ -246,6 +277,20 @@ define(function(require, exports, module) {
 		var value = content.substr(pos+match_len,content.substr(pos+match_len).search(/[(;,]/));
         value = value.trim();
 		return value;
+	}
+	
+	 /**
+        Get the parent class name if extends
+        @param content  {string} content of document
+        @return Parent classname
+    */
+    function getParentClass (content, variable) {
+        // get the declaration for this variable 
+        // can be a ',' between two declarations
+        var regex = new RegExp('class (.*?) extends (.*?){','');
+        var match = regex.exec(content);
+    
+		return match[2].trim();
 	}
     
 
