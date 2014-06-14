@@ -43,7 +43,7 @@ define(function(require, exports, module) {
         
         // get function name
         var func = get_func_name(currentDoc,sel.start);
-     			
+	
         // if a function was selected
         if (func && func.name) {
             // Initialize the Ajax request
@@ -116,7 +116,7 @@ define(function(require, exports, module) {
 										result.reject();
 									});	
 						    })
-						} else {						
+						} else {	
 							var classContent = getContentClass(docDir,func.class.name);
 							classContent.done(function(content) {
 								var usertags = get_userdefined_tags(content,func);
@@ -305,7 +305,7 @@ define(function(require, exports, module) {
 		var result = new $.Deferred();
 		
         var tags = new Object();
-        var regex = /\/\*\*(?:[ \t]*)[\n\r](?:[\s\S]*?)\*\/(?:[ \t]*)[\n\r]*?(?:[ \t]*)function (.*?)(\n|\r|$)/gmi; // global,multiline,insensitive
+        var regex = /\/\*\*(?:[ \t]*)[\n\r](?:(?!\*\/)[\s\S])*\*\/(?:[ \t]*)[\n\r]*?(?:[ \t]*)(?:(?:public (?:static )?|private (?:static )?|protected (?:static ))|(?:(?:static )?public |(?:static )?private |(?:static )?protected))?function (.*?)(\n|\r|$)/gmi; // global,multiline,insensitive
 
         var matches = null;
         while (matches = regex.exec(content)) {
@@ -316,7 +316,6 @@ define(function(require, exports, module) {
 			var match_func = matches[1].trim();
 			var end_func_name = match_func.search(/(\(|$)/);
 			var match_func = match_func.substring(0,end_func_name).trim();
-			
             if (match_func === func.name) {
                 var lines = matches[0].split(/[\n\r]/);
         
@@ -425,6 +424,7 @@ define(function(require, exports, module) {
 				var content;
 				if (sortedFilesTop.length != 0 || sortedFilesBottom.length < 10) {
 					sortedFiles = sortedFilesTop.concat(sortedFilesBottom);
+					sortedFiles = sortedFiles.slice(0,10);
 					content = getContentClassIterator(sortedFiles,className);
 				}
 				if (content) {
@@ -449,7 +449,7 @@ define(function(require, exports, module) {
 		if (contents) {
 			contents.some(function (entry) {
 				if (entry._isDirectory == false) {
-					var match = new RegExp('class\\s*?'+className+'\\s*?\{');
+					var match = new RegExp('class\\s*?'+className+'( extends (.*?))?\\s*?\{');
 					if (entry._name.substr(-4) == ".php") {
 						if (entry._contents) {
 							if (entry._contents.match(match)) {
