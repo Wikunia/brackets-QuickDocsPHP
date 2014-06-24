@@ -155,7 +155,9 @@ define(function(require, exports, module) {
 						result.resolve(inlineWidget);					
 					});
                 }
-                
+                if (result.state() == "rejected") {
+					return null;
+				}
 				return result.promise();			
             } 
 		} else {
