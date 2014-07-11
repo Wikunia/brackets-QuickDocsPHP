@@ -176,6 +176,10 @@ define(function(require, exports, module) {
 				tags.r = tags.r ? '<b>Return</b><br>' + tags.r : ''; 
 
 				var result = new $.Deferred();
+				console.log(func);
+				console.log(tags);
+				console.log(url);
+				console.log(parameters);
 				var inlineWidget = new InlineDocsViewer(func.name,{SUMMARY:tags.s, SYNTAX: tags.y, RETURN: tags.r, URL:url, VALUES:parameters});
 				inlineWidget.load(hostEditor);
 				result.resolve(inlineWidget);
@@ -232,8 +236,11 @@ define(function(require, exports, module) {
 						var varClass = line.substr(pos.ch-class_pos,class_pos-b-2);
 						if (varClass == "this") {
 							// could extend a parent class
-							func_class.name = getParentClass(content);
-							func_class.type = "parent";
+							var possibleParentClass = getParentClass(content);
+							if (possibleParentClass) {
+								func_class.name = getParentClass(content);
+								func_class.type = "parent";
+							}
 						} else {
 							func_class.name = getClass(content,varClass);
 						}
@@ -291,8 +298,10 @@ define(function(require, exports, module) {
         // can be a ',' between two declarations
         var regex = new RegExp('class (.*?) extends (.*?){','');
         var match = regex.exec(content);
-    
-		return match[2].trim();
+		if(match) {
+			return match[2].trim();
+		}
+		return false;
 	}
     
 
