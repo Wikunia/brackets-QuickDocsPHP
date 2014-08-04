@@ -52,7 +52,7 @@ define(function (require, exports, module) {
      * @param {!string} phpPropName
      * @param {!{SUMMARY:string, RETURN: string, SYNTAX: string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} phpPropDetails
      */
-    function InlineDocsViewer(phpPropName, phpPropDetails) {
+    function InlineDocsViewer(phpPropName,language, phpPropDetails) {
         InlineWidget.call(this);
         
         // valueInfo.t = title (.d = description)
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
             var url = $elem.attr("href");
             if (url && url.substr(0, 4) !== "http") {
                 // URLs in JSON data are relative
-                url = "http://de3.php.net/" + url;
+                url = "http://de2.php.net/manual/"+language+"/"+ url+".php";
                 $elem.attr("href", url);
             }
             $elem.attr("title", url);

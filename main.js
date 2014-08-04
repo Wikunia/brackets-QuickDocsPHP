@@ -176,11 +176,17 @@ define(function(require, exports, module) {
 				tags.r = tags.r ? '<b>Return</b><br>' + tags.r : ''; 
 
 				var result = new $.Deferred();
+				url = url.replace('_','-');
+				if (func.class.name) {
+					url = func.class.name.toLowerCase()+"."+url;
+				} else {
+					url = "function."+url;
+				}
 				console.log(func);
 				console.log(tags);
 				console.log(url);
 				console.log(parameters);
-				var inlineWidget = new InlineDocsViewer(func.name,{SUMMARY:tags.s, SYNTAX: tags.y, RETURN: tags.r, URL:url, VALUES:parameters});
+				var inlineWidget = new InlineDocsViewer(func.name,language,{SUMMARY:tags.s, SYNTAX: tags.y, RETURN: tags.r, URL:url, VALUES:parameters});
 				inlineWidget.load(hostEditor);
 				result.resolve(inlineWidget);
 				return result.promise();
