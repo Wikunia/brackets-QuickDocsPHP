@@ -45,43 +45,48 @@ define(function (require, exports, module) {
     var SCROLL_LINE_HEIGHT = 40;
     
     // Load CSS
-    ExtensionUtils.loadStyleSheet(module, "WebPlatformDocs.less");
+    ExtensionUtils.loadStyleSheet(module, "WebPlatformDocsPHP.less");
     
     
     /**
      * @param {!string} phpPropName
-     * @param {!{SUMMARY:string, RETURN: string, SYNTAX: string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} phpPropDetails
+     * @param {!{SUMMARY:string, SYNTAX:string, RETURN:string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} phpPropDetails
      */
-    function InlineDocsViewer(phpPropName,language, phpPropDetails) {
+    function InlineDocsViewer(phpPropName, language, phpPropDetails) {
         InlineWidget.call(this);
         
         // valueInfo.t = title (.d = description)
         var propValues = phpPropDetails.VALUES.map(function (valueInfo) {
-            return { value: valueInfo.t, description: valueInfo.d };
+            return { value: valueInfo.t, description: valueInfo.d, type: valueInfo.type };
         });
+		var returnValues = [{description: phpPropDetails.RETURN.d, type: phpPropDetails.RETURN.type}];
+
         
         var bottom_style = '', syntax_style = '', return_style = '';
+
         if (!phpPropDetails.URL) {
             bottom_style = 'display: none;';
-        }
-        if (!phpPropDetails.RETURN) {
-            return_style = 'display: none;';
         }
         if (!phpPropDetails.SYNTAX) {
             syntax_style = 'display: none;';
         }
+
+        if (!returnValues[0].description && !returnValues[0].type) {
+            return_style = 'display: none;';
+        }
+
         
         var templateVars = {
-            propName    : phpPropName,
-            summary     : phpPropDetails.SUMMARY,
-            return_val  : phpPropDetails.RETURN,
-            syntax  : phpPropDetails.SYNTAX,
-            propValues  : propValues,
-            url         : phpPropDetails.URL,
-            Strings     : Strings,
-            BottomStyle : bottom_style, 
-            ReturnStyle : return_style,
-            SyntaxStyle : syntax_style
+            propName      : phpPropName,
+            summary       : phpPropDetails.SUMMARY,
+            syntax        : phpPropDetails.SYNTAX,
+            returnValues  : returnValues,
+            propValues    : propValues,
+            url           : phpPropDetails.URL,
+            BottomStyle   : bottom_style,
+            SyntaxStyle   : syntax_style,
+            ReturnStyle   : return_style,
+            Strings       : Strings
         };
         
         var html = Mustache.render(inlineEditorTemplate, templateVars);

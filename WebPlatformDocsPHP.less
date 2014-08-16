@@ -3,6 +3,7 @@
 @emphasized-text-color: #454545;
 @heading-color: #454545;
 @link-color: #0083e8;
+@paramtype-color: #6faded;
 
 
 /* Typography */
@@ -12,9 +13,9 @@
 /* Overall inline widget content container */
 .php-prop-defn {
     margin-left: 20px;
-    
+
     color: @body-text-color;
-    
+
     /* Enable text selection */
     cursor: auto;
     -webkit-user-select: text;
@@ -23,14 +24,14 @@
     -ms-user-select: text;
     -o-user-select: text;
     user-select: text;
-    
+
     &:focus {
         outline: none;
     }
-    
+
     font-family: SourceSansPro;
     font-size: 14px;
-    
+
     h1 {
         color: @heading-color;
         font-size: 16px;
@@ -38,11 +39,11 @@
         line-height: normal;
         margin: 15px 0 9px 0;
     }
-    
+
     a {
         color: @link-color;
     }
-    
+
     code {
         font-family: SourceCodePro;
         font-size: 12px;
@@ -51,10 +52,14 @@
         padding: 0;
         white-space: normal;
     }
-    
+
     b {
         font-weight: @font-weight-semibold;
     }
+
+	.paramtype {
+		color: @paramtype-color;
+	}
 }
 
 /* Left-hand column */
@@ -67,7 +72,7 @@
     word-wrap: break-word;
     -webkit-hyphens: auto;
     hyphens: auto;
-    
+
     p {
         line-height: 18px;
     }
@@ -78,31 +83,31 @@
 
 /* Right-hand column */
 .php-prop-values {
-    box-sizing: border-box; //for exact dimension        
+    box-sizing: border-box; //for exact dimension
     float: right;
     width: 60%;
-    
+
     .scroller {
         max-height: 300px;
         overflow-y: auto;
-        
+
         margin: 20px (@scrollbar-wid + 4px) 0 0;
-        
+
         &:focus {
             outline: none;
         }
     }
-        
+
     dl {
         margin-top: 0px;
-        
+
         dt {
             color: @emphasized-text-color;
             font-size: 13px;
             font-weight: @font-weight-semibold;
             margin-bottom: 3px;
         }
-        
+
         dd {
             // some styles must specifically be on <p> to override Bootstrap
             p, li, b {
@@ -118,6 +123,7 @@
             padding-bottom: 0px;
         }
     }
+
 }
 
 .divider-holder {
@@ -147,17 +153,17 @@ a.more-info {
     bottom: 0px;
     right: (33px + @scrollbar-wid);
     padding: 4px 10px 4px 10px;
-    
+
     background: #e5e9e9;
     background-repeat: no-repeat;
     background-size: 15px 15px;
     background-position: 8px 4px;
-    
+
     border: 1px solid #9c9e9e;
     border-radius: 3px 3px 0 0;
     border-bottom: none;
     box-shadow: inset 0 1px 0 white;  // white chisel along top edge
-    
+
     font-size: 12px;
     font-weight: @font-weight-semibold;
     color: @heading-color;
@@ -170,22 +176,23 @@ a.more-info {
 
 
 /* Link to license */
-a.license-info {
+a.license-php-info {
     position: absolute;
     bottom: 0px;
-    left: 70px;
+    left: 85px;
+
     padding: 4px 10px 4px 10px;
-    
+
     background: #e5e9e9;
     background-repeat: no-repeat;
     background-size: 15px 15px;
     background-position: 8px 4px;
-    
+
     border: 1px solid #9c9e9e;
     border-radius: 3px 3px 0 0;
     border-bottom: none;
     box-shadow: inset 0 1px 0 white;  // white chisel along top edge
-    
+
     font-size: 12px;
     font-weight: @font-weight-semibold;
     color: @heading-color;
@@ -198,23 +205,23 @@ a.license-info {
 
 
 
-/* Link to php.net */
+/* Link to developer.mozilla.org */
 a.php-info {
     position: absolute;
     bottom: 0px;
     left: 10px;
     padding: 4px 10px 4px 10px;
-    
+
     background: #e5e9e9;
     background-repeat: no-repeat;
     background-size: 15px 15px;
     background-position: 8px 4px;
-    
+
     border: 1px solid #9c9e9e;
     border-radius: 3px 3px 0 0;
     border-bottom: none;
     box-shadow: inset 0 1px 0 white;  // white chisel along top edge
-    
+
     font-size: 12px;
     font-weight: @font-weight-semibold;
     color: @heading-color;

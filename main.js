@@ -43,7 +43,8 @@ define(function(require, exports, module) {
         
         // get function name
         var func = get_func_name(currentDoc,sel.start);
-	
+
+
         // if a function was selected
         if (func && func.name) {
             // Initialize the Ajax request
@@ -172,21 +173,29 @@ define(function(require, exports, module) {
 				} else {
 					var parameters = eval("[{}]");   
 				}
-				// empty string if tags.r isn't defined
-				tags.r = tags.r ? '<b>Return</b><br>' + tags.r : ''; 
 
 				var result = new $.Deferred();
-				url = url.replace('_','-');
-				if (func.class.name) {
-					url = func.class.name.toLowerCase()+"."+url;
+				if (url) {
+					url = url.replace('_','-');
+					if (func.class.name) {
+						url = func.class.name.toLowerCase()+"."+url;
+					} else {
+						url = "function."+url;
+					}
 				} else {
-					url = "function."+url;
+					url = false;
 				}
-				console.log(func);
-				console.log(tags);
-				console.log(url);
-				console.log(parameters);
-				var inlineWidget = new InlineDocsViewer(func.name,language,{SUMMARY:tags.s, SYNTAX: tags.y, RETURN: tags.r, URL:url, VALUES:parameters});
+
+				if (tags.r) {
+						if (typeof tags.r.d == 'undefined') {
+							tags.r = {d:tags.r,type:''};
+						}
+				} else {
+					tags.r = {};
+				}
+
+				var inlineWidget = new InlineDocsViewer(func.name, language,
+														{SUMMARY:tags.s, SYNTAX: tags.y, RETURN: tags.r, URL:url, VALUES:parameters});
 				inlineWidget.load(hostEditor);
 				result.resolve(inlineWidget);
 				return result.promise();
@@ -331,73 +340,86 @@ define(function(require, exports, module) {
             // get the function name
 			// start_pos
 			var match_func = matches[1].trim();
-			var end_func_name = match_func.search(/(\(|$)/);
+			var end_func_name = match_func.search(/( |\(|$)/);
 			var match_func = match_func.substring(0,end_func_name).trim();
             if (match_func === func.name) {
-                var lines = matches[0].split(/[\n\r]/);
-        
-                // until the first @ it's description 
-                // afterwards the description can't start again
-                var canbe_des = true; // can be description
-                var params = [];
-                // first line is /**, and last two ones are */ \n function
-                for (var i = 1; i < lines.length-2; i++) {
+                var lines  = matches[0].split(/[\n\r]/);
+				// get the comment without * at the beginning of a line
+				var comment = '';
+				lines = lines.slice(1);  // without the / * * at the end /beginning
+				for (var i = 0; i < lines.length; i++) {
                     lines[i] = lines[i].trim(); // trim each line
-					if (lines[i].substr(0,2) == "*/") break;
+					if (lines[i].substr(0,2) == "*/") { lines = lines.slice(0,i); break; }
                     lines[i] = lines[i].replace(/^\*/,'').trim(); // delete * at the beginning and trim line again
-                    
-					
-                    // no @ => decription part 
-                    if (lines[i].substr(0,1) !== '@' && canbe_des) {
-                        if (tags.s && lines[i]) {
-                            tags.s += '<br>' + lines[i]; // add to summary part
-                        } else if (!tags.s) {
-                            tags.s = lines[i];
-                        }
-                    }
-                    tags.y = ''; // syntax is empty for this
-                    
-					if (lines[i].substr(0,6) === '@param' || lines[i].substr(0,7) === '@return') {
-						canbe_des = false; // description tag closed
-					}
-					
+				}
+				comment = lines.join('\n');
+				var commentTags = comment.split('@');
+
+
+				tags.s = commentTags[0].replace(/\r?\n/g, '<br />'); // the first (without @ is the description/summary)
+				tags.y = ''; // no syntax for userdefined functions
+
+				var params = [];
+				for (var i = 1; i < commentTags.length; i++) {
                     // get params
-                    if (lines[i].substr(0,6) === '@param') {
-                        var param_parts = lines[i].split(/(?:\s+)/);
-                        var param_parts_length = param_parts.length;
-                        // 0 = @param, 1 = title, 2-... = description
-						// 1 can be the type (not starting with a $) => 2 is the title (phpDoc)
-                        // 2 can be the type (inside {}) (JavaDoc)
-						if (param_parts[1].substr(0,1) !== '$') {
-							// type is part of the title
-							if (param_parts_length > 2 && param_parts[2].substr(0,1) == '$') {
-                            	var param_title = param_parts[2] + ' {' + param_parts[1] + '}';
-								var description = param_parts[3];
-								var j_start = 4;
-							} else {
-								var param_title = "$"+param_parts[1];
-								var description = param_parts[2];
-								var j_start = 3;
-							}                            	
-						} else { // maybe JavaDoc
-							if (param_parts_length > 2 && param_parts[2].substr(0,1) == '{' && param_parts[2].substr(-1) == '}') {
+                    if (commentTags[i].substr(0,5) === 'param') {
+                        var param_parts = commentTags[i].split(/(\s)+/);
+
+                        var param_type = '';
+						var delimiters = param_parts.filter(function(v,i) { return ((i % 2) === 1); });
+						param_parts = param_parts.filter(function(v,i) { return ((i % 2 === 0)); });
+
+                    	if (commentTags[i].substr(0,5) === 'param') {
+							var param_parts_length = param_parts.length;
+							// 0 = param, 1 = title, 2-... = description
+							// 1 can be the type (not starting with a $) => 2 is the title (phpDoc)
+							// 2 can be the type (inside {}) (JavaDoc)
+							if (param_parts[1].substr(0,1) !== '$') {
 								// type is part of the title
-								var param_title = param_parts[1] + ' ' + param_parts[2]; 
-								var description = param_parts[3];
-								var j_start = 4;
-							} else {
-								var param_title = param_parts[1]; 
-								var description = param_parts[2];
-								var j_start = 3;
+								if (param_parts_length > 2 && param_parts[2].substr(0,1) == '$') {
+									var param_title = param_parts[2];
+									param_type = param_parts[1];
+									var description = param_parts[3];
+									var j_start = 4;
+								} else {
+									var param_title = "$"+param_parts[1];
+									var description = param_parts[2];
+									var j_start = 3;
+								}
+							} else { // maybe JavaDoc
+								if (param_parts_length > 2 && param_parts[2].substr(0,1) == '{' && param_parts[2].substr(-1) == '}') {
+									// type is part of the title
+									var param_title = param_parts[1];
+									param_type = param_parts[2].substring(1,param_parts[2].length-1);
+									var description = param_parts[3];
+									var j_start = 4;
+								} else {
+									var param_title = param_parts[1];
+									var description = param_parts[2];
+									var j_start = 3;
+								}
 							}
+							for (var j = j_start; j < param_parts.length; j++) {
+								description += delimiters[j-1] + param_parts[j];
+							}
+						} else {
+							var param_title = param_parts[1];
+							var description = '';
 						}
-                        for (var j = j_start; j < param_parts_length; j++) {
-                            description += ' ' + param_parts[j];
-                        }
-                        params.push({'t':param_title,'d':description});
+                        params.push({'t':param_title,'d':description.replace(/\r?\n/g,'<br />'),'type':param_type});
                     }
-                    if (lines[i].substr(0,7) === '@return') {
-                        tags.r = lines[i].substr(7).trim(); // delete @return and trim
+                    if (commentTags[i].substr(0,6) === 'return') {
+						if (commentTags[i].substr(0,7) === 'returns') {
+							var  return_tag = commentTags[i].substr(7).trim(); // delete returns and trim
+						} else {
+                        	var  return_tag = commentTags[i].substr(6).trim(); // delete return and trim
+						}
+						if(return_tag.charAt(0) == '{') {
+							var endCurly = return_tag.indexOf('}');
+							tags.r = {'d': return_tag.substr(endCurly+1),'type':return_tag.substring(1,endCurly)};
+						}else {
+							tags.r = return_tag;
+						}
                     }
                 }
                 tags.p = params;
@@ -410,7 +432,8 @@ define(function(require, exports, module) {
 		}
         return result.reject();   
     }
-    
+
+
 	/**
 	 * Get the content of a special class name
 	 * For that iterate through all php files 
