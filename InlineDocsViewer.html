@@ -15,10 +15,14 @@
     <div class="php-prop-values quiet-scrollbars">
         <div class="scroller" tabIndex="0"> <!-- tabIndex needed: otherwise can't be focused on open or via click -->
              {{#propValues}}
-            <dl>
-                <dt>{{value}} <span class="paramtype">{{type}}</span></dt>
-                <dd>{{{description}}}</dd>
-            </dl>
+				<dt>
+					<span class="optional bracket" style="{{cssOptional}}">[</span>
+						{{name}}
+					<span class="optional bracket" style="{{cssOptional}}">]</span>
+					<span class="paramtype">{{type}}</span>
+				</dt>
+				<dd style="{{cssOptional}}" class="optional">{{default}}</dd>
+				<dd>{{{description}}}</dd>
             {{/propValues}}
         </div>
     </div>

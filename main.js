@@ -374,9 +374,9 @@ define(function(require, exports, module) {
 							// 0 = param, 1 = title, 2-... = description
 							// 1 can be the type (not starting with a $) => 2 is the title (phpDoc)
 							// 2 can be the type (inside {}) (JavaDoc)
-							if (param_parts[1].substr(0,1) !== '$') {
+							if (param_parts[1].substr(0,2).indexOf('$') < 0) {
 								// type is part of the title
-								if (param_parts_length > 2 && param_parts[2].substr(0,1) == '$') {
+								if (param_parts_length > 2 && param_parts[2].substr(0,2).indexOf('$') >= 0) {
 									var param_title = param_parts[2];
 									param_type = param_parts[1];
 									var description = param_parts[3];
@@ -406,7 +406,26 @@ define(function(require, exports, module) {
 							var param_title = param_parts[1];
 							var description = '';
 						}
-                        params.push({'t':param_title,'d':description.replace(/\r?\n/g,'<br />'),'type':param_type});
+
+						var optional = false;
+						var defaultValue;
+						// a param title can start with a [ and ends with ] => optional parameter
+						if (param_title.charAt(0) == '[' && param_title.charAt(param_title.length-1) == ']') {
+							optional = true;
+							param_title = param_title.substring(1,param_title.length-1);
+							var optional_parts = param_title.split('=');
+							if (optional_parts.length == 2) {
+								param_title = optional_parts[0];
+								defaultValue = optional_parts[1];
+							}
+						}
+
+                        params.push({
+							't':param_title,
+							'd':description.replace(/\r?\n/g,'<br />'),
+							'type':param_type,
+							'optional':optional,'default':defaultValue
+						});
                     }
                     if (commentTags[i].substr(0,6) === 'return') {
 						if (commentTags[i].substr(0,7) === 'returns') {
