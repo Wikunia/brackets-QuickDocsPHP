@@ -67,13 +67,13 @@ define(function (require, exports, module) {
 			}
             return {
 				name: 			valueInfo.t,
-				description: 	valueInfo.d,
+				description: 	parsePHPDocs(valueInfo.d),
 				type: 			valueInfo.type,
 				default: 		valueInfo.default,
 				cssOptional: 	valueInfo.cssOptional
 			};
         });
-		var returnValues = [{description: phpPropDetails.RETURN.d, type: phpPropDetails.RETURN.type}];
+		var returnValues = [{description: parsePHPDocs(phpPropDetails.RETURN.d), type: phpPropDetails.RETURN.type}];
 
         
         var bottom_style = '', syntax_style = '', return_style = '';
@@ -92,7 +92,7 @@ define(function (require, exports, module) {
         
         var templateVars = {
             propName      : phpPropName,
-            summary       : phpPropDetails.SUMMARY,
+            summary       : parsePHPDocs(phpPropDetails.SUMMARY),
             syntax        : phpPropDetails.SYNTAX,
             returnValues  : returnValues,
             propValues    : propValues,
@@ -244,6 +244,24 @@ define(function (require, exports, module) {
         this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.height() + 20, true);
     };
     
-    
+	/**
+	 * @param   {String} doc [[Description]]
+	 * @returns {String} [[Description]]
+	 */
+	function parsePHPDocs(doc) {
+		if (typeof doc == "string") {
+			doc = doc.replace(/<br \/>|<br>/,'\r\n');
+			doc = doc.replace(/@link ([^ ]+)( [^ ]+)?/,function(match,p1,p2) {
+				if (typeof p2 == "string") {
+					return '<a href="'+p1.trim()+'">'+p2.trim()+'</a>';
+				}
+				return '<a href="'+p1.trim()+'">'+p1.trim()+'</a>';
+			});
+			doc = doc.replace(/\r\n/,'<br />');
+		}
+		return doc;
+	}
+
+
     module.exports = InlineDocsViewer;
 });
