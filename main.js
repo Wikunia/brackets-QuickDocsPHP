@@ -176,7 +176,7 @@ define(function(require, exports, module) {
 
 				var result = new $.Deferred();
 				if (url) {
-					url = url.replace('_','-');
+					url = url.replace(/_/g,'-');
 					if (func.class.name) {
 						url = func.class.name.toLowerCase()+"."+url;
 					} else {
