@@ -10,13 +10,13 @@ You can use the Navigation menu or ```Ctrl+K``` (Windows) or ```CMD+K``` (Mac), 
 This extension uses the documentation from [http://php.net](http://php.net).
 
 ## User defined function documentation
-Use JavaDoc to document your own functions and get inline documentations as well.
+Use PHPDoc to document your own functions and get inline documentations as well.
 It's also working if your own function isn't part of your current document but inside a php class.
 If the function is inside a php class it is important, that the filename contains the classname! 
 
 ![InlineDocs](image/user_func.png?raw=true)
 
-The php class inside an other file:
+The php class inside an other file (`class.table2array.php`):
 ![PHP-class](image/user_func_class.png?raw=true)
 
 ##The documentation includes
