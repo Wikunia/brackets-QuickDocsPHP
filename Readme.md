@@ -19,6 +19,12 @@ If the function is inside a php class it is important, that the filename contain
 The php class inside an other file (`class.table2array.php`):
 ![PHP-class](image/user_func_class.png?raw=true)
 
+## You're rich?
+You don't need a second yacht and have some coins to spend? Here I am :)
+
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=Wikunia&url=https://github.com/Wikunia/brackets-QuickDocsPHP&title=Brackets-QuickDocsPHP&language=javascript&tags=github&category=software)
+
+
 ##The documentation includes
 + description
 + syntax
